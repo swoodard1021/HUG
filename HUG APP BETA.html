@@ -218,8 +218,7 @@
   };
 
   // ─── BID TAB ──────────────────────────────────────────────────────────────────
-  function BidTab({ onPromote }) {
-    var [bids, setBids] = useState(()=>{ try{ return JSON.parse(localStorage.getItem('hdd_bids')||'[]')||[]; }catch(e){ return []; } });
+  function BidTab({ onPromote, bids, setBids }) {
     var [weeklyGoal, setWeeklyGoal] = useState(()=>parseFloat(localStorage.getItem('hdd_goal')||'0'));
     var [showForm, setShowForm] = useState(false);
     var [editBid, setEditBid] = useState(null);
@@ -488,6 +487,7 @@
   // ─── MAIN APP ─────────────────────────────────────────────────────────────────
   function HDDCalendar() {
     var [jobs, setJobs] = useState([]);
+    var [bids, setBids] = useState(()=>{ try{ return JSON.parse(localStorage.getItem('hdd_bids')||'[]')||[]; }catch(e){ return []; } });
     var [view, setView] = useState('calendar');
     var [calMode, setCalMode] = useState('month');
     var [currentDate, setCurrentDate] = useState(new Date());
@@ -665,12 +665,11 @@
         var restoredJobs=parsed.jobs||parsed; if(!Array.isArray(restoredJobs)){ showToast('Invalid backup file.','error'); return; }
         setJobs(restoredJobs); localStorage.setItem('hunter_underground_jobs',JSON.stringify(restoredJobs));
         if(parsed.bids&&Array.isArray(parsed.bids)){
-          localStorage.setItem('hdd_bids',JSON.stringify(parsed.bids));
-          showToast('✓ Restored '+restoredJobs.length+' jobs + '+parsed.bids.length+' bids from backup!');
+          setBids(parsed.bids); localStorage.setItem('hdd_bids',JSON.stringify(parsed.bids));
+          showToast('✓ Restored '+restoredJobs.length+' jobs + '+parsed.bids.length+' bids!');
         } else {
-          showToast('✓ Restored '+restoredJobs.length+' jobs from backup (no bids found)');
+          showToast('✓ Restored '+restoredJobs.length+' jobs (no bids in this backup)');
         }
-        setTimeout(()=>window.location.reload(),800);
       }catch(e){ showToast('Could not read backup file.','error'); } };
       reader.readAsText(file); e.target.value='';
     };
@@ -798,7 +797,7 @@
 
       // Content
       ce('div',{style:{maxWidth:1400,margin:'0 auto',padding:'16px 12px'}},
-        activeTab==='bids'&&ce(BidTab,{onPromote:bid=>{ if(window.__hugPromoteBid) window.__hugPromoteBid(bid); }}),
+        activeTab==='bids'&&ce(BidTab,{onPromote:bid=>{ if(window.__hugPromoteBid) window.__hugPromoteBid(bid); }, bids, setBids}),
         activeTab==='schedule'&&ce(React.Fragment,null,
 
           // Calendar view
